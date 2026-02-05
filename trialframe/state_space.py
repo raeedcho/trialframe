@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.utils.validation import check_is_fitted
 
@@ -22,6 +23,7 @@ class DataFrameTransformer(TransformerMixin, BaseEstimator):
 
     def fit(self,X,y=None):
         self.transformer.fit(X,y)
+        self.is_fitted_ = True  # Mark as fitted
         return self
 
     def transform(self, X):
