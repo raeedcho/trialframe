@@ -19,6 +19,8 @@ dependencies = [
     "pandas",
     "scipy",
     "scikit-learn",
+    "xarray",
+    "dpca",
 ]
 
 [project.optional-dependencies]
