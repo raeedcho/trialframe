@@ -3,6 +3,7 @@ import numpy as np
 import scipy.signal as scs
 from . import munge
 from .time_slice import slice_by_time, reindex_trial_from_event
+from .smoothing import smooth_mat
 
 def get_sample_spacing(df: pd.DataFrame) -> float:
     time_diffs = munge.get_index_level(df, 'time').diff()
@@ -15,6 +16,40 @@ def get_sample_spacing(df: pd.DataFrame) -> float:
         raise ValueError("The most common time difference is not a timedelta object")
     
     return sample_spacing
+
+def smooth_data(data: pd.DataFrame, std: pd.Timedelta = pd.to_timedelta('50ms')) -> pd.DataFrame:
+    """
+    Smooth each column of the input DataFrame using a Gaussian filter.
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        The input data to be smoothed.
+    std : pd.Timedelta
+        The standard deviation of the Gaussian kernel as a pandas Timedelta.
+
+    Returns
+    -------
+    pd.DataFrame
+        The smoothed data.
+    """
+    
+    # check monotonicity of time index (single trial)
+    time_index = munge.get_index_level(data, 'time')
+    if not time_index.is_monotonic_increasing:
+        raise ValueError("'time' index must be monotonically increasing to smooth a single trial")
+
+    sample_spacing = get_sample_spacing(data)
+    return pd.DataFrame(
+        smooth_mat(
+            data.values,
+            dt=sample_spacing,
+            std=std.total_seconds(),
+            backend='convolve1d',
+        ),
+        index=data.index,
+        columns=data.columns,
+    )
 
 def estimate_kinematic_derivative(
         trial_signal: pd.DataFrame,
