@@ -131,6 +131,3 @@ def test_smooth_data_non_monotonic():
     
     with pytest.raises(ValueError, match="time.*must be monotonically increasing"):
         smooth_data(df, std=pd.to_timedelta('50ms'))
-
-
-
