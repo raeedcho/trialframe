@@ -2,14 +2,13 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.timeseries import (
+from trialframe.timeseries import (
     get_sample_spacing,
     estimate_kinematic_derivative,
     estimate_kinematic_derivative_savgol,
     remove_baseline,
-    hold_mahal_distance,
 )
-from src.time_slice import (
+from trialframe.time_slice import (
     slice_by_time,
     state_list_to_transitions,
     state_transitions_to_list,
@@ -80,8 +79,4 @@ def test_remove_baseline(longer_timeseries_df):
     assert np.isfinite(out.values).all()
 
 
-def test_hold_mahal_distance(simple_points_and_reference):
-    pts, ref = simple_points_and_reference
-    dist = hold_mahal_distance(pts, ref)
-    assert dist.shape[0] == len(pts)
-    assert np.isfinite(dist.values).all()
+

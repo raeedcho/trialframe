@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from src.munge import get_index_level, multivalue_xs, hierarchical_assign
+from trialframe.munge import get_index_level, multivalue_xs, hierarchical_assign
 
 
 def test_get_index_level():

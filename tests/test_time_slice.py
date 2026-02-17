@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.time_slice import (
+from trialframe.time_slice import (
     slice_by_time,
     state_list_to_transitions,
     state_transitions_to_list,
