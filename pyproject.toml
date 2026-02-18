@@ -21,6 +21,8 @@ dependencies = [
     "scikit-learn",
     "xarray",
     "dpca",
+    "numexpr",
+    "numba",
 ]
 
 [project.optional-dependencies]

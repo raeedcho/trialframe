@@ -29,7 +29,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -e ".[dev]"
-        pip install numexpr numba
     
     - name: Run tests
       run: |
