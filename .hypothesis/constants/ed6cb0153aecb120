@@ -1,4 +1,0 @@
-# file: /home/runner/work/trialframe/trialframe/trialframe/dpca.py
-# hypothesis_version: 6.151.9
-
-['activity', 'channel', 'labels', 'phase', 't', 'time', 'transformer', 'trial num']
