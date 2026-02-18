@@ -1,0 +1,4 @@
+# file: /home/runner/work/trialframe/trialframe/trialframe/time_slice.py
+# hypothesis_version: 6.151.9
+
+['any', 'new_state', 'phase', 'previous_state', 'state', 'time', 'trial_id']

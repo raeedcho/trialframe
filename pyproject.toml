@@ -28,6 +28,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "hypothesis",
     "black",
     "isort"
 ]
