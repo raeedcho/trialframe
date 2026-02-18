@@ -2,14 +2,14 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.timeseries import (
+from trialframe.timeseries import (
     get_sample_spacing,
     estimate_kinematic_derivative,
     estimate_kinematic_derivative_savgol,
     remove_baseline,
-    hold_mahal_distance,
+    smooth_data,
 )
-from src.time_slice import (
+from trialframe.time_slice import (
     slice_by_time,
     state_list_to_transitions,
     state_transitions_to_list,
@@ -80,8 +80,54 @@ def test_remove_baseline(longer_timeseries_df):
     assert np.isfinite(out.values).all()
 
 
-def test_hold_mahal_distance(simple_points_and_reference):
-    pts, ref = simple_points_and_reference
-    dist = hold_mahal_distance(pts, ref)
-    assert dist.shape[0] == len(pts)
-    assert np.isfinite(dist.values).all()
+def test_smooth_data(longer_timeseries_df):
+    """Test smooth_data function with basic parameters."""
+    smoothed = smooth_data(longer_timeseries_df, std=pd.to_timedelta('50ms'))
+    
+    # Should return a DataFrame with same shape
+    assert isinstance(smoothed, pd.DataFrame)
+    assert smoothed.shape == longer_timeseries_df.shape
+    # Index should be preserved
+    assert smoothed.index.equals(longer_timeseries_df.index)
+    # All values should be finite
+    assert np.isfinite(smoothed.values).all()
+
+
+def test_smooth_data_causal(longer_timeseries_df):
+    """Test smooth_data with causal kernel."""
+    smoothed = smooth_data(
+        longer_timeseries_df,
+        std=pd.to_timedelta('50ms'),
+        causal=True
+    )
+    
+    # Should return a DataFrame with same shape
+    assert smoothed.shape == longer_timeseries_df.shape
+    assert np.isfinite(smoothed.values).all()
+
+
+def test_smooth_data_beta_kernel(longer_timeseries_df):
+    """Test smooth_data with beta kernel."""
+    smoothed = smooth_data(
+        longer_timeseries_df,
+        std=pd.to_timedelta('50ms'),
+        kernel='beta',
+        kernel_params={'alpha': 2.0, 'beta_param': 5.0}
+    )
+    
+    # Should return a DataFrame with same shape
+    assert smoothed.shape == longer_timeseries_df.shape
+    assert np.isfinite(smoothed.values).all()
+
+
+def test_smooth_data_non_monotonic():
+    """Test that smooth_data raises error for non-monotonic time index."""
+    # Create a DataFrame with non-monotonic time index
+    n = 10
+    trial_ids = [1] * n
+    times = pd.to_timedelta([0, 10, 20, 15, 40, 50, 60, 70, 80, 90], unit="ms")
+    idx = pd.MultiIndex.from_arrays([trial_ids, times], names=["trial_id", "time"])
+    df = pd.DataFrame({"x": np.arange(n)}, index=idx)
+    
+    with pytest.raises(ValueError, match="time.*must be monotonically increasing"):
+        smooth_data(df, std=pd.to_timedelta('50ms'))
