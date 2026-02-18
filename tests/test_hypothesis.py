@@ -142,10 +142,13 @@ def test_smooth_mat_preserves_shape_1d(signal, dt, std):
     n_cols=st.integers(min_value=2, max_value=5),
     dt=st.floats(min_value=0.001, max_value=0.1),
     std=st.floats(min_value=0.01, max_value=0.2),
+    seed=st.integers(min_value=0, max_value=2**31 - 1),
 )
-def test_smooth_mat_preserves_shape_2d(n_rows, n_cols, dt, std):
+def test_smooth_mat_preserves_shape_2d(n_rows, n_cols, dt, std, seed):
     """Property: Smoothing should preserve the shape of 2D input arrays."""
-    signal = np.random.randn(n_rows, n_cols) * 10
+    # Use hypothesis-controlled seed for reproducibility
+    rng = np.random.RandomState(seed)
+    signal = rng.randn(n_rows, n_cols) * 10
     
     smoothed = smooth_mat(signal, dt=dt, kernel_params={'std': std}, backend='convolve1d')
     assert smoothed.shape == signal.shape
@@ -191,7 +194,8 @@ def test_smooth_mat_causal_doesnt_use_future(dt, std):
     
     # Before the step (with some margin), values should be close to 0
     # The exact margin depends on the std, so we use a conservative check
-    margin = int(5 * std / dt)
+    # Ensure margin doesn't exceed the signal boundary
+    margin = min(int(5 * std / dt), 40)
     if 50 - margin > 0:
         assert np.all(smoothed[:50-margin] < 0.1)
 
