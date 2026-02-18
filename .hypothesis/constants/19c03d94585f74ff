@@ -1,4 +1,0 @@
-# file: /home/runner/work/trialframe/trialframe/trialframe/smoothing.py
-# hypothesis_version: 6.151.9
-
-[0.05, 2.0, 5.0, 'beta', 'constant', 'convolve', 'convolve1d', 'gaussian', 'hw', 'only give hw or std', 'reflect', 'same', 'std']
