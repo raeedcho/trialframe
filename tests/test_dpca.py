@@ -213,18 +213,44 @@ def test_phase_concat_dpca_init_no_labels():
 
 
 def test_phase_concat_dpca_fit(sample_phase_trialframe):
-    """Test PhaseConcatDPCA fitting - skipped due to complex data requirements."""
-    pytest.skip("PhaseConcatDPCA requires specific data structure - covered by basic tests")
+    """Test PhaseConcatDPCA fitting."""
+    conditions = ['task', 'time']
+    dpca = PhaseConcatDPCA(
+        conditions=conditions,
+        labels='st',
+        n_components=2,
+    )
+    dpca.fit(sample_phase_trialframe)
+    assert dpca.is_fitted_
 
 
 def test_phase_concat_dpca_transform(sample_phase_trialframe):
-    """Test PhaseConcatDPCA transformation - skipped due to complex data requirements."""
-    pytest.skip("PhaseConcatDPCA requires specific data structure - covered by basic tests")
+    """Test PhaseConcatDPCA transformation."""
+    conditions = ['task', 'time']
+    dpca = PhaseConcatDPCA(
+        conditions=conditions,
+        labels='st',
+        n_components=2,
+    )
+    dpca.fit(sample_phase_trialframe)
+    result = dpca.transform(sample_phase_trialframe)
+    assert isinstance(result, pd.DataFrame)
+    assert result.index.equals(sample_phase_trialframe.index)
+    assert len(result) == len(sample_phase_trialframe)
 
 
 def test_phase_concat_dpca_fit_transform(sample_phase_trialframe):
-    """Test PhaseConcatDPCA fit_transform - skipped due to complex data requirements."""
-    pytest.skip("PhaseConcatDPCA requires specific data structure - covered by basic tests")
+    """Test PhaseConcatDPCA fit_transform."""
+    conditions = ['task', 'time']
+    dpca = PhaseConcatDPCA(
+        conditions=conditions,
+        labels='st',
+        n_components=2,
+    )
+    result = dpca.fit_transform(sample_phase_trialframe)
+    assert isinstance(result, pd.DataFrame)
+    assert result.index.equals(sample_phase_trialframe.index)
+    assert len(result) == len(sample_phase_trialframe)
 
 
 def test_phase_concat_dpca_custom_protect():
