@@ -74,7 +74,7 @@ def beta_window(bin_length, std, alpha=2.0, beta_param=5.0):
     return win / np.sum(win)
 
 
-def smooth_mat(mat, dt=None, win=None, backend='convolve1d', causal=False, kernel='gaussian', kernel_params=None):
+def smooth_data(mat, dt=None, win=None, backend='convolve1d', causal=False, kernel='gaussian', kernel_params=None):
     """
     Smooth a 1D array or every column of a 2D array
 

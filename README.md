@@ -62,7 +62,7 @@ Columns can be single-level or multi-level (e.g., `('signal', 'channel')`) for h
 Functions for time series analysis and kinematic processing:
 
 - `get_sample_spacing(df)`: Determine the sampling rate from time index
-- `smooth_data(data, std)`: Apply Gaussian smoothing to data
+- `smooth_data(data, std)`: Apply smoothing to data (via `smoothing` module)
 - `estimate_kinematic_derivative(trial_signal, deriv, cutoff)`: Compute derivatives using Butterworth filtering
 - `estimate_kinematic_derivative_savgol(trial_signal, deriv, window_length, polyorder)`: Compute derivatives using Savitzky-Golay filter
 - `remove_baseline(trial, ref_event, ref_slice)`: Subtract baseline activity
@@ -100,7 +100,7 @@ Low-level smoothing functions:
 
 - `norm_gauss_window(bin_length, std)`: Create normalized Gaussian kernel
 - `hw_to_std(hw)`: Convert half-width to standard deviation
-- `smooth_mat(mat, dt, std, hw, win, backend)`: Smooth 1D or 2D arrays
+- `smooth_data(mat, dt, std, hw, win, backend)`: Smooth 1D or 2D arrays
 
 ### `dpca`
 
@@ -133,7 +133,15 @@ aligned_trials = tf.reindex_trial_from_event(trial_data, event='Go Cue')
 
 ```python
 # Smooth position data
-smooth_pos = tf.smooth_data(position_data, std=pd.to_timedelta('50ms'))
+smooth_pos = (
+    position_data
+    .groupby('trial_id')
+    .transform(
+        tf.smooth_data,
+        dt=0.01,  # sample spacing in seconds
+        kernel_params={'std': 0.05},  # 50ms std
+    )
+)
 
 # Estimate velocity
 velocity = tf.estimate_kinematic_derivative(smooth_pos, deriv=1, cutoff=30)

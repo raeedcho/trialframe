@@ -7,7 +7,7 @@ from trialframe.smoothing import (
     norm_gauss_window,
     hw_to_std,
     beta_window,
-    smooth_mat,
+    smooth_data,
     only_one_is_not_None,
 )
 
@@ -83,14 +83,14 @@ def test_beta_window_different_params():
     assert np.abs(np.sum(win2) - 1.0) < 1e-10
 
 
-def test_smooth_mat_1d():
+def test_smooth_data_1d():
     """Test smoothing a 1D array."""
     # Create a noisy signal
     np.random.seed(42)
     signal = np.sin(np.linspace(0, 4*np.pi, 100)) + np.random.randn(100) * 0.1
     
     dt = 0.01
-    smoothed = smooth_mat(signal, dt=dt, kernel_params={'std': 0.05}, backend='convolve1d')
+    smoothed = smooth_data(signal, dt=dt, kernel_params={'std': 0.05}, backend='convolve1d')
     
     # Smoothed signal should have same shape
     assert smoothed.shape == signal.shape
@@ -98,7 +98,7 @@ def test_smooth_mat_1d():
     assert np.var(smoothed) < np.var(signal)
 
 
-def test_smooth_mat_2d():
+def test_smooth_data_2d():
     """Test smoothing a 2D array (multiple columns)."""
     # Create a noisy 2D signal
     np.random.seed(42)
@@ -108,7 +108,7 @@ def test_smooth_mat_2d():
     ])
     
     dt = 0.01
-    smoothed = smooth_mat(signal, dt=dt, kernel_params={'std': 0.05}, backend='convolve1d')
+    smoothed = smooth_data(signal, dt=dt, kernel_params={'std': 0.05}, backend='convolve1d')
     
     # Smoothed signal should have same shape
     assert smoothed.shape == signal.shape
@@ -117,14 +117,14 @@ def test_smooth_mat_2d():
     assert np.var(smoothed[:, 1]) < np.var(signal[:, 1])
 
 
-def test_smooth_mat_causal():
+def test_smooth_data_causal():
     """Test causal smoothing doesn't use future data."""
     # Create a signal with a step function
     signal = np.zeros(100)
     signal[50:] = 1.0
     
     dt = 0.01
-    smoothed = smooth_mat(signal, dt=dt, kernel_params={'std': 0.02}, backend='convolve1d', causal=True)
+    smoothed = smooth_data(signal, dt=dt, kernel_params={'std': 0.02}, backend='convolve1d', causal=True)
     
     # Before the step, causal smoothing should not show the future step
     # (values before index 50 should be close to 0)
@@ -133,34 +133,34 @@ def test_smooth_mat_causal():
     assert smoothed[52] > smoothed[48]
 
 
-def test_smooth_mat_with_window():
+def test_smooth_data_with_window():
     """Test smoothing with a custom window."""
     signal = np.random.randn(100)
     # Create a simple moving average window
     win = np.ones(5) / 5
     
-    smoothed = smooth_mat(signal, win=win, backend='convolve1d')
+    smoothed = smooth_data(signal, win=win, backend='convolve1d')
     
     assert smoothed.shape == signal.shape
 
 
-def test_smooth_mat_with_hw():
+def test_smooth_data_with_hw():
     """Test smoothing with half-width parameter."""
     signal = np.random.randn(100)
     dt = 0.01
     hw = 0.05
     
-    smoothed = smooth_mat(signal, dt=dt, kernel_params={'hw': hw}, backend='convolve1d')
+    smoothed = smooth_data(signal, dt=dt, kernel_params={'hw': hw}, backend='convolve1d')
     
     assert smoothed.shape == signal.shape
 
 
-def test_smooth_mat_beta_kernel():
+def test_smooth_data_beta_kernel():
     """Test smoothing with beta kernel."""
     signal = np.random.randn(100)
     dt = 0.01
     
-    smoothed = smooth_mat(
+    smoothed = smooth_data(
         signal,
         dt=dt,
         kernel='beta',
@@ -171,51 +171,51 @@ def test_smooth_mat_beta_kernel():
     assert smoothed.shape == signal.shape
 
 
-def test_smooth_mat_convolve_backend():
+def test_smooth_data_convolve_backend():
     """Test smoothing with scipy.signal.convolve backend."""
     signal = np.random.randn(100)
     dt = 0.01
     
-    smoothed = smooth_mat(signal, dt=dt, kernel_params={'std': 0.05}, backend='convolve')
+    smoothed = smooth_data(signal, dt=dt, kernel_params={'std': 0.05}, backend='convolve')
     
     assert smoothed.shape == signal.shape
 
 
-def test_smooth_mat_convolve_backend_2d():
+def test_smooth_data_convolve_backend_2d():
     """Test smoothing 2D array with convolve backend."""
     signal = np.random.randn(100, 3)
     dt = 0.01
     
-    smoothed = smooth_mat(signal, dt=dt, kernel_params={'std': 0.05}, backend='convolve')
+    smoothed = smooth_data(signal, dt=dt, kernel_params={'std': 0.05}, backend='convolve')
     
     assert smoothed.shape == signal.shape
 
 
-def test_smooth_mat_invalid_backend():
+def test_smooth_data_invalid_backend():
     """Test that invalid backend raises error."""
     signal = np.random.randn(100)
     dt = 0.01
     
     with pytest.raises(AssertionError):
-        smooth_mat(signal, dt=dt, kernel_params={'std': 0.05}, backend='invalid')
+        smooth_data(signal, dt=dt, kernel_params={'std': 0.05}, backend='invalid')
 
 
-def test_smooth_mat_invalid_dimensions():
+def test_smooth_data_invalid_dimensions():
     """Test that 3D array raises error."""
     signal = np.random.randn(10, 10, 10)
     dt = 0.01
     
     with pytest.raises(ValueError, match="mat has to be a 1D or 2D array"):
-        smooth_mat(signal, dt=dt, kernel_params={'std': 0.05}, backend='convolve1d')
+        smooth_data(signal, dt=dt, kernel_params={'std': 0.05}, backend='convolve1d')
 
 
-def test_smooth_mat_invalid_kernel():
+def test_smooth_data_invalid_kernel():
     """Test that invalid kernel raises error."""
     signal = np.random.randn(100)
     dt = 0.01
     
     with pytest.raises(ValueError, match="kernel must be 'gaussian' or 'beta'"):
-        smooth_mat(signal, dt=dt, kernel_params={'std': 0.05}, kernel='invalid')
+        smooth_data(signal, dt=dt, kernel_params={'std': 0.05}, kernel='invalid')
 
 
 def test_only_one_is_not_None():
@@ -226,19 +226,19 @@ def test_only_one_is_not_None():
     assert only_one_is_not_None([1, 2, 3]) is False
 
 
-def test_smooth_mat_no_dt_with_window():
+def test_smooth_data_no_dt_with_window():
     """Test that dt is not required when window is provided."""
     signal = np.random.randn(100)
     win = np.ones(5) / 5
     
     # Should work without dt when window is provided
-    smoothed = smooth_mat(signal, win=win, backend='convolve1d')
+    smoothed = smooth_data(signal, win=win, backend='convolve1d')
     assert smoothed.shape == signal.shape
 
 
-def test_smooth_mat_no_dt_without_window():
+def test_smooth_data_no_dt_without_window():
     """Test that dt is required when window is not provided."""
     signal = np.random.randn(100)
     
     with pytest.raises(AssertionError):
-        smooth_mat(signal, kernel_params={'std': 0.05}, backend='convolve1d')
+        smooth_data(signal, kernel_params={'std': 0.05}, backend='convolve1d')

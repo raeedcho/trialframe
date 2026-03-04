@@ -3,7 +3,6 @@ import numpy as np
 import scipy.signal as scs
 from . import munge
 from .time_slice import slice_by_time, reindex_trial_from_event
-from .smoothing import smooth_mat
 
 def get_sample_spacing(df: pd.DataFrame) -> float:
     time_diffs = munge.get_index_level(df, 'time').diff()
@@ -16,56 +15,6 @@ def get_sample_spacing(df: pd.DataFrame) -> float:
         raise ValueError("The most common time difference is not a timedelta object")
     
     return sample_spacing
-
-def smooth_data(data: pd.DataFrame, std: pd.Timedelta = pd.to_timedelta('50ms'), causal: bool = False, kernel: str = 'gaussian', kernel_params: dict = None) -> pd.DataFrame:
-    """
-    Smooth each column of the input DataFrame using a specified filter.
-
-    Parameters
-    ----------
-    data : pd.DataFrame
-        The input data to be smoothed.
-    std : pd.Timedelta
-        The standard deviation of the smoothing kernel as a pandas Timedelta.
-    causal : bool (default False)
-        If True, use causal (one-sided) kernel to avoid acausal smoothing effects.
-        This is useful when you don't want smooth values to respond before the event.
-    kernel : str (default 'gaussian')
-        Type of kernel: 'gaussian' (half-window if causal) or 'beta'
-    kernel_params : dict (optional)
-        Additional parameters for the kernel function.
-        For 'beta' kernel: {'alpha': float, 'beta_param': float}
-        Example: {'alpha': 2.0, 'beta_param': 5.0} for sharper decay
-
-    Returns
-    -------
-    pd.DataFrame
-        The smoothed data.
-    """
-    
-    # check monotonicity of time index (single trial)
-    time_index = munge.get_index_level(data, 'time')
-    if not time_index.is_monotonic_increasing:
-        raise ValueError("'time' index must be monotonically increasing to smooth a single trial")
-
-    sample_spacing = get_sample_spacing(data)
-    
-    # Prepare kernel_params with std
-    smooth_params = kernel_params.copy() if kernel_params else {}
-    smooth_params['std'] = std.total_seconds()
-    
-    return pd.DataFrame(
-        smooth_mat(
-            data.values,
-            dt=sample_spacing,
-            backend='convolve1d',
-            causal=causal,
-            kernel=kernel,
-            kernel_params=smooth_params,
-        ),
-        index=data.index,
-        columns=data.columns,
-    )
 
 def estimate_kinematic_derivative(
         trial_signal: pd.DataFrame,

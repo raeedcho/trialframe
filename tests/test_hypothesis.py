@@ -14,7 +14,7 @@ from trialframe.smoothing import (
     norm_gauss_window,
     hw_to_std,
     beta_window,
-    smooth_mat,
+    smooth_data,
 )
 from trialframe.time_slice import (
     state_list_to_transitions,
@@ -140,12 +140,12 @@ def test_beta_window_all_positive(bin_length, std, alpha, beta_param):
     dt=st.floats(min_value=0.001, max_value=0.1),
     std=st.floats(min_value=0.01, max_value=0.2),
 )
-def test_smooth_mat_preserves_shape_1d(signal, dt, std):
+def test_smooth_data_preserves_shape_1d(signal, dt, std):
     """Property: Smoothing should preserve the shape of the input array."""
     # Ensure reasonable window sizes
     assume(std / dt >= 1.0)
     
-    smoothed = smooth_mat(signal, dt=dt, kernel_params={'std': std}, backend='convolve1d')
+    smoothed = smooth_data(signal, dt=dt, kernel_params={'std': std}, backend='convolve1d')
     assert smoothed.shape == signal.shape
 
 
@@ -156,7 +156,7 @@ def test_smooth_mat_preserves_shape_1d(signal, dt, std):
     std=st.floats(min_value=0.01, max_value=0.2),
     seed=st.integers(min_value=0, max_value=2**31 - 1),
 )
-def test_smooth_mat_preserves_shape_2d(n_rows, n_cols, dt, std, seed):
+def test_smooth_data_preserves_shape_2d(n_rows, n_cols, dt, std, seed):
     """Property: Smoothing should preserve the shape of 2D input arrays."""
     # Ensure reasonable window sizes
     assume(std / dt >= 1.0)
@@ -165,7 +165,7 @@ def test_smooth_mat_preserves_shape_2d(n_rows, n_cols, dt, std, seed):
     rng = np.random.RandomState(seed)
     signal = rng.randn(n_rows, n_cols) * 10
     
-    smoothed = smooth_mat(signal, dt=dt, kernel_params={'std': std}, backend='convolve1d')
+    smoothed = smooth_data(signal, dt=dt, kernel_params={'std': std}, backend='convolve1d')
     assert smoothed.shape == signal.shape
 
 
@@ -175,7 +175,7 @@ def test_smooth_mat_preserves_shape_2d(n_rows, n_cols, dt, std, seed):
     std=st.floats(min_value=0.01, max_value=0.2),
     seed=st.integers(min_value=0, max_value=2**31 - 1),
 )
-def test_smooth_mat_reduces_variance(n, dt, std, seed):
+def test_smooth_data_reduces_variance(n, dt, std, seed):
     """Property: Smoothing should not significantly increase variance for noisy signals."""
     # Ensure reasonable window sizes
     assume(std / dt >= 1.0)
@@ -184,7 +184,7 @@ def test_smooth_mat_reduces_variance(n, dt, std, seed):
     rng = np.random.RandomState(seed)
     signal = rng.randn(n) * 10
 
-    smoothed = smooth_mat(signal, dt=dt, kernel_params={'std': std}, backend='convolve1d')
+    smoothed = smooth_data(signal, dt=dt, kernel_params={'std': std}, backend='convolve1d')
 
     smoothed_var = np.var(smoothed)
     original_var = np.var(signal)
@@ -196,7 +196,7 @@ def test_smooth_mat_reduces_variance(n, dt, std, seed):
     dt=st.floats(min_value=0.001, max_value=0.1),
     std=st.floats(min_value=0.01, max_value=0.2),
 )
-def test_smooth_mat_causal_doesnt_use_future(dt, std):
+def test_smooth_data_causal_doesnt_use_future(dt, std):
     """Property: Causal smoothing should not use future data."""
     # Ensure reasonable window sizes
     assume(std / dt >= 1.0)
@@ -205,7 +205,7 @@ def test_smooth_mat_causal_doesnt_use_future(dt, std):
     signal = np.zeros(100)
     signal[50:] = 1.0
     
-    smoothed = smooth_mat(signal, dt=dt, kernel_params={'std': std}, backend='convolve1d', causal=True)
+    smoothed = smooth_data(signal, dt=dt, kernel_params={'std': std}, backend='convolve1d', causal=True)
     
     # Before the step (with some margin), values should be close to 0
     # The exact margin depends on the std, so we use a conservative check
